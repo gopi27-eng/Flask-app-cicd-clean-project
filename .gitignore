@@ -1,0 +1,12 @@
+# Terraform local files
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+
+# Local packages
+session-manager-plugin.deb
+
+# Python virtual env
+venv1/
+__pycache__/
