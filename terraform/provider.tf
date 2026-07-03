@@ -5,9 +5,17 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.20"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.9"
+    }
   }
 }
 
 provider "aws" {
-  region = "us-east-1" # Change to your preferred region
+  region = "us-east-1"
 }

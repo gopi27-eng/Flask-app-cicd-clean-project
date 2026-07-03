@@ -40,7 +40,7 @@ resource "aws_iam_role_policy_attachment" "ecr_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 }
 
-# Attachment 2: Secrets Manager Permissions (Separate block fixes the comma error!)
+# Attachment 2: Secrets Manager Permissions
 resource "aws_iam_role_policy_attachment" "secrets_policy_attach" {
   role       = aws_iam_role.jenkins_role.name
   policy_arn = aws_iam_policy.jenkins_secrets_policy.arn
@@ -79,12 +79,18 @@ resource "aws_instance" "jenkins" {
   vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
   iam_instance_profile = aws_iam_instance_profile.jenkins_profile.id
 
+  # PROPERLY NESTED STORAGE BLOCK
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp3"
+  }
+
   user_data = <<-EOF
               #!/bin/bash
               sudo apt-get update -y
               
-              # Install Java (Required for Jenkins)
-              sudo apt-get install openjdk-17-jdk -y
+              # Install Java 21 (Updated for modern Jenkins)
+              sudo apt-get install openjdk-21-jdk -y
 
               # Install AWS CLI
               sudo apt-get install unzip -y
@@ -92,9 +98,9 @@ resource "aws_instance" "jenkins" {
               unzip awscliv2.zip
               sudo ./aws/install
 
-              # Install Jenkins
+              # Install Jenkins (Updated with 2026 Key)
               sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
-                https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+                https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
               echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
                 https://pkg.jenkins.io/debian-stable binary/" | sudo tee \
                 /etc/apt/sources.list.d/jenkins.list > /dev/null

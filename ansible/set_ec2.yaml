@@ -1,0 +1,53 @@
+---
+- name: Configure EC2 for Flask Application
+  hosts: all
+  become: true
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: true
+
+    - name: Install AWS CLI
+      yum:
+        name: awscli
+        state: present
+
+    - name: Authenticate Docker to ECR
+      shell: >
+        aws ecr get-login-password --region {{ ecr_region }} |
+        docker login --username AWS --password-stdin {{ ecr_registry }}
+      vars:
+        ecr_region: "your-region-here"
+        ecr_registry: "your_account_id.dkr.ecr.your-region-here.amazonaws.com"
+
+    - name: Pull the Docker image
+      docker_image:
+        name: "your_account_id.dkr.ecr.your-region-here.amazonaws.com/your_repo_name:tag"
+        source: pull
+
+    - name: Run the Flask container
+      docker_container:
+        name: flask_app
+        image: "your_account_id.dkr.ecr.your-region-here.amazonaws.com/your_repo_name:tag"
+        state: started
+        ports:
+          - "80:80"
+        restart_policy: always
